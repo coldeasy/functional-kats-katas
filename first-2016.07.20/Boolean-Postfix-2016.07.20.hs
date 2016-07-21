@@ -23,17 +23,17 @@ parseToken c =
 parseTokens :: String -> [Op]
 parseTokens str = map parseToken $ filter (\x -> x /= ' ') str
 
-reduceTokens :: [Op] -> [Op]
-reduceTokens ((Nullary b1):(Nullary b2):(Binary op):xs) = reduceTokens ((Nullary $ op b1 b2):(reduceTokens xs))
-reduceTokens ((Nullary b1):(Unary op):xs) = reduceTokens ((Nullary $ op b1):(reduceTokens xs))
-reduceTokens val = val
-
-evalTokens :: [Op] -> Bool
-evalTokens [(Nullary b1)] = b1
-evalTokens xs = evalTokens $ reduceTokens xs
+evalTokens :: [Op] -> [Op] -> Bool
+evalTokens ((Binary op):xs) ((Nullary b1):(Nullary b2):xs2) = evalTokens xs ((Nullary $ op b1 b2):xs2)
+evalTokens ((Unary op):xs) ((Nullary b1):xs2) = evalTokens xs ((Nullary $ op b1):xs2)
+evalTokens ((Nullary op):xs) xs2 = evalTokens xs ((Nullary op):xs2)
+evalTokens [] [Nullary op] = op
+evalTokens _ _ = error "Invalid input"
 
 evalRawTokenSeq :: String -> Bool
-evalRawTokenSeq tokenSeq = evalTokens $ parseTokens tokenSeq
+evalRawTokenSeq tokenSeq =
+    evalTokens tokens []
+    where tokens = parseTokens tokenSeq
 
 main :: IO ()
 main = do
